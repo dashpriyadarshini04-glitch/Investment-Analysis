@@ -1,0 +1,408 @@
+CREATE DATABASE FOOD_STORE;
+ 
+USE FOOD_STORE;
+
+CREATE TABLE CATEGORIES (
+CAT_ID INT PRIMARY KEY,
+CAT_NAME VARCHAR(50) NOT NULL
+);
+
+
+CREATE TABLE PRODUCTS(
+P_ID INT PRIMARY KEY,
+P_NAME VARCHAR(50) NOT NULL,
+PRICE DECIMAL(8,2),
+STOCK INT,
+CAT_ID INT,
+CONSTRAINT FOREIGN KEY(CAT_ID) REFERENCES CATEGORIES(CAT_ID)
+);
+
+select p.p_name,p.price,c.cat_name
+from products p
+left join categories c
+on p.cat_id= c.cat_id
+order by price desc
+limit 1;
+
+CREATE TABLE ORDERS(
+ORDER_ID INT PRIMARY KEY,
+P_ID INT,
+CONSTRAINT FOREIGN KEY(P_ID) REFERENCES PRODUCTS(P_ID), 
+QUANTITY INT,
+ORDER_DATE date);
+
+INSERT INTO CATEGORIES (CAT_ID, CAT_NAME,price) VALUES
+(1, 'Beverages',200),
+(2, 'Snacks',300),
+(3, 'Dairy',400);
+
+
+INSERT INTO PRODUCTS (P_ID, P_NAME, PRICE, STOCK, CAT_ID) VALUES
+(101, 'Coffee', 120.50, 50, 1),
+(102, 'Tea', 80.00, 40, 1),
+(103, 'Chips', 30.00, 100, 2),
+(104, 'Chocolate', 60.00, 70, 2),
+(105, 'Milk', 50.00, 60, 3),
+(106, 'Cheese', 200.00, 20, 3);
+
+INSERT INTO ORDERS (ORDER_ID, P_ID, QUANTITY, ORDER_DATE) VALUES
+(1001, 101, 05, '2023-05-10'),   -- Coffee
+(1002, 102, 03, '2023-08-15'),   -- Tea
+(1003, 103, 10, '2024-01-20'),  -- Chips
+(1004, 104, 07, '2024-03-05'),   -- Chocolate
+(1005, 105, 04, '2023-11-12'),   -- Milk
+(1006, 106, 02, '2024-06-25');   -- Cheese
+
+
+ SELECT * FROM CATEGORIES;
+ SELECT * FROM PRODUCTS;
+  SELECT * FROM ORDERS;
+
+-- PRICE>100
+ SELECT P_NAME, PRICE
+ FROM PRODUCTS
+ WHERE PRICE>100 ;
+
+-- WHERE + AND OR NOT
+ SELECT P_NAME, PRICE,STOCK
+ FROM PRODUCTS
+ WHERE PRICE>50 AND STOCK>30 ;
+ 
+ SELECT CAT_ID, P_NAME
+ FROM PRODUCTS
+ WHERE NOT CAT_ID=3 ;
+ 
+SELECT CAT_ID, P_NAME
+FROM PRODUCTS
+WHERE CAT_ID<> 3;
+
+-- LIKE
+ SELECT P_NAME
+ FROM PRODUCTS
+ WHERE P_NAME LIKE 'C%';
+ 
+ SELECT P_NAME
+ FROM PRODUCTS
+ WHERE P_NAME LIKE '%EE%';
+ 
+  SELECT P_NAME
+ FROM PRODUCTS
+ WHERE P_NAME LIKE '_O%';
+ 
+ -- BETWEEN + IN
+  SELECT P_NAME,PRICE
+ FROM PRODUCTS
+ WHERE PRICE BETWEEN 50 AND 150 ;
+ 
+  SELECT CAT_ID ,P_NAME,PRICE
+ FROM PRODUCTS
+ WHERE CAT_ID IN(1,3) ;
+ 
+ -- NULL , NOT NULL
+  SELECT P_NAME,PRICE
+ FROM PRODUCTS
+ WHERE PRICE IS NOT NULL;
+ 
+ SELECT P_NAME,PRICE
+ FROM PRODUCTS
+ WHERE PRICE IS NULL;
+ 
+ -- INSERT NULL VALUE
+ INSERT INTO PRODUCTS  (P_ID,P_NAME,PRICE,STOCK,CAT_ID) VALUE
+ (107,'ALU',30,NULL,1);
+ 
+  SELECT P_NAME,PRICE
+ FROM PRODUCTS
+ WHERE STOCK IS NULL;
+ 
+ -- UPDATE
+ UPDATE PRODUCTS
+ SET P_NAME = 'MILKY'
+ WHERE P_ID =105;
+ 
+ SELECT* FROM PRODUCTS;
+ 
+ --
+ --
+ -- FIND TOTAL AVG OF PRODUCTS
+ SELECT COUNT(P_ID) AS TOTAL_NUM_P, P_NAME
+ FROM PRODUCTS
+ group by P_NAME;
+ 
+  SELECT MAX(PRICE) 
+ FROM PRODUCTS;
+ 
+   SELECT SUM(STOCK) 
+ FROM PRODUCTS;
+ 
+   SELECT CAT_ID,COUNT(*) 
+ FROM PRODUCTS
+ group by CAT_ID;
+ 
+   SELECT AVG(PRICE), CAT_ID 
+ FROM PRODUCTS
+ group by CAT_ID;
+ 
+    SELECT SUM(STOCK), CAT_ID 
+ FROM PRODUCTS
+ group by CAT_ID;
+ 
+ -- HAVING 
+ -- SHOW CATEGORIES WHERE AVG PRICE>100
+ 
+ SELECT CAT_ID,AVG(PRICE)
+ FROM PRODUCTS
+ group by CAT_ID
+ HAVING AVG(PRICE)>100;
+ 
+ -- SHOW CATEGORY HAVING MORE THAN 1 PRODUCT
+ SELECT CAT_ID, COUNT(*)
+ FROM PRODUCTS
+ GROUP BY CAT_ID
+ HAVING COUNT(*)>1;
+ 
+ -- INNER JOIN
+ 
+ SELECT P.P_NAME,P.PRICE,C.CAT_NAME
+ FROM PRODUCTS P
+ INNER JOIN CATEGORIES C
+ ON C.CAT_ID=P.CAT_ID;
+ 
+  SELECT P.P_NAME,O.QUANTITY,O.ORDER_DATE
+ FROM PRODUCTS P
+ INNER JOIN ORDERS O
+ ON P.P_ID=O.P_ID;
+  
+  -- TOTAL SALES
+  SELECT P.P_NAME,SUM(O.QUANTITY*P.PRICE) AS TOTAL_SALES
+ FROM PRODUCTS P
+ INNER JOIN ORDERS O
+ ON P.P_ID=O.P_ID
+ GROUP BY P.P_NAME;
+ 
+ -- LEFT JOIN
+ -- SHOW ALL THE PRODUCTS EVEN IF THEY HAVE NO ORDERS 
+ SELECT P.P_NAME,O.ORDER_DATE
+ FROM PRODUCTS P
+ LEFT JOIN ORDERS O
+ ON P.P_ID=O.P_ID;
+ 
+ -- CASE
+ 
+ SELECT P_NAME, PRICE,
+ CASE
+ WHEN PRICE>150 THEN 'EXPENSIVE'
+ WHEN PRICE BETWEEN 80 AND 150 THEN 'MODRATE'
+ ELSE 'CHEAP'
+ END AS PRICE_CATEGORY
+ FROM PRODUCTS;
+ 
+ --
+ -- SUBQUERY
+ -- 1 SHOW PRODUCT WHOSE PRICE IS GREATER THAN AVG PRICE
+
+ SELECT P_NAME,PRICE
+ FROM PRODUCTS
+ WHERE PRICE>( SELECT AVG(PRICE) FROM PRODUCTS);
+ 
+ -- 2ND HEIGHEST SALARY 
+ 
+SELECT P_NAME, PRICE
+FROM PRODUCTS
+ORDER BY PRICE DESC
+LIMIT 1 OFFSET 1;
+
+SELECT PRICE
+    FROM PRODUCTS
+    ORDER BY PRICE DESC
+    LIMIT 3;
+    
+-- at least one order    
+    SELECT P_NAME, PRICE
+FROM PRODUCTS
+WHERE P_ID IN ( SELECT P_ID FROM ORDERS);
+    
+    --
+    
+ -- Increase price by 10% for category_id = 1
+ UPDATE PRODUCTS
+SET PRICE = PRICE * 1.10
+WHERE CAT_ID = 1;
+
+-- REDUCE STOCK BY 5 FOR P_ID=3
+UPDATE PRODUCTS
+SET STOCK= STOCK-5
+WHERE P_ID = 3;
+
+-- CHANGE PRODUCT NAME TO COFFEE TO COFFEEE
+UPDATE PRODUCTS 
+SET P_NAME = 'COFFEEE'
+WHERE P_NAME = 'COFFEE';
+
+SELECT * FROM PRODUCTS;
+
+-- DELETE AND TRUNCATE
+
+-- DELETE PRODUCTS WHERE STOCK IS NULL
+DELETE FROM PRODUCTS
+WHERE STOCK IS NULL;
+
+-- WRITE A COMMAND TO REMOVE ALL THE ROWS FROM ORDERS TABLES BUT KEEP STRUCTURE
+TRUNCATE TABLE ORDERS;
+
+-- ALTER
+ALTER TABLE PRODUCTS
+ADD COLUMN DISCOUNT DECIMAL(5,2);
+
+-- CAHNGE DATA TYPE
+ALTER TABLE PRODUCTS 
+MODIFY COLUMN PRICE DECIMAL(8,2);
+
+-- DROP DISCOUNT TABLE
+ALTER TABLE PRODUCTS
+DROP COLUMN DISCOUNT;
+
+-- TOP N & ORDERING
+-- SHOW TOP 3 MOST EXPENSIVE PRODUCTS
+SELECT P_NAME, PRICE
+FROM PRODUCTS
+ORDER BY PRICE DESC
+LIMIT 3;
+
+-- 2ND HEIGHEST PRODUCT
+(SELECT PRICE , P_NAME FROM PRODUCTS ORDER BY PRICE DESC LIMIT 1 OFFSET 1);
+
+-- CREATE A VIEW NAMED SALES_SUMMARY, SHOWING P_NMAE + TOTAL_SALES
+CREATE VIEW SALES_SUMMARY AS 
+SELECT P.P_NAME , SUM(P.PRICE*O.QUANTITY) AS TOTAL_SALES
+FROM PRODUCTS P
+INNER JOIN ORDERS O
+ON P.P_ID=O.P_ID
+GROUP BY P.P_NAME;
+
+SELECT * FROM SALES_SUMMARY;
+
+CREATE INDEX IDX_PRODUCT_NAME
+ON PRODUCTS(P_NAME);
+
+-- ADVANCED
+-- ADD UNIQUE CONSTRAINTS
+ALTER TABLE PRODUCTS
+ADD COLUMN SUPPLIER_EMAIL VARCHAR (50) UNIQUE;
+
+-- CHECK CONSTRAIN
+-- PRICE SHOULD NOT BE NEGETIVE
+ALTER TABLE PRODUCTS
+ADD CONSTRAINT CHECK_PRICE
+CHECK (PRICE>=0);
+
+-- ADD DEFAULT VALUE AS 0
+-- STOCK DEFAULT VALUE SHOULD BE 0
+ALTER TABLE PRODUCTS
+ALTER STOCK SET DEFAULT 0;
+
+-- PROCEDURE
+-- CREATE PROCEDURE TO SHOW EXPENCESS >150
+DELIMITER //
+
+CREATE PROCEDURE EXPENCES()
+BEGIN
+    SELECT * 
+    FROM PRODUCTS
+    WHERE PRICE > 150;
+END //
+
+DELIMITER ;
+
+CALL EXPENCES() ;
+
+-- SITUATIONAL
+-- Show the product that never received any order
+
+select p.p_name
+from products p
+left join orders o
+on p.p_id=o.p_id
+where order_id is null ;
+
+alter table products
+drop column supplier;
+
+select*from products;
+
+update products
+set supplier_email = concat(p_id,p_name,'@gamil.com');
+
+-- find product that has heighest price
+select p_name,price
+from products
+order by price desc
+limit 1 offset 2;
+
+select p_name,price
+from products
+order by price desc
+limit 3;
+
+select p_name,price
+from products
+where price=(select max(price)
+from products
+where price<(
+select max(price)
+from products
+where price<(select max(price)
+from products)));
+
+-- by mistakely entered wrong amount 20 instead of 100
+
+update products
+set price = 100
+where price =30;
+
+select * from products;
+
+-- Find the categories where total product >2 and avg price >100
+select cat_id,sum(price) as total_product ,avg(price)as avg_price
+from products
+group by cat_id
+having total_product>2 and avg_price>100;
+
+-- show products whose price is greater than overall avg price
+select p_name
+from products 
+where price>(select avg(price) from products);
+
+
+select*from categories;
+
+alter table categories
+add column price decimal(10,2);
+ 
+update categories
+set price = 500
+where cat_id= 1;
+
+update categories
+set price = 200
+where cat_id= 2;
+
+update categories
+set price = 300
+where cat_id= 3;
+
+alter table categories
+add column volume decimal(10,2);
+
+update categories
+set volume = price*5
+where cat_id=1;
+
+update categories
+set volume = price*2
+where cat_id=2;
+
+update categories
+set volume = price*3
+where cat_id=3;
+
